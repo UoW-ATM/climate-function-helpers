@@ -6,14 +6,6 @@ The climate impact is in nK/Kg (or fuel burnt).
 import os
 import sys
 from pathlib import Path
-#
-# PROJECT_ROOT = Path(__file__).resolve().parents[1]
-#
-# sys.path.insert(1, str(PROJECT_ROOT))
-#
-# from config_user import PATH_TO_CLIMACCF_LIBRARY
-#
-# sys.path.insert(1, PATH_TO_CLIMACCF_LIBRARY)
 
 import argparse
 
@@ -50,8 +42,13 @@ def get_virtualenv_name() -> str | None:
     return None
 
 
-def compute_climate_impact(path_pl, path_sur, output_path=None, climaccf_lib_path=None, climate_indicator='ATR',
-                           TimHorizon=20, ac_type='wide-body', merged=False, climaccf_config_user_file=None):
+def compute_climate_impact(path_pl, path_sur, output_path=None, climaccf_lib_path=None,  climaccf_config_user_file=None):
+    """climate_indicator='ATR',
+                           TimHorizon=20, ac_type='wide-body', merged=True,"""
+
+    print("Converting:\n - ", path_pl, "\n - ", path_sur)
+    print()
+
     if climaccf_lib_path is None:
         # climaccf_lib_path = (Path(__file__).parent.parent / 'climaccf').resolve()
         climaccf_lib_path = Path('~/.virtualenvs') / get_virtualenv_name()
@@ -63,6 +60,7 @@ def compute_climate_impact(path_pl, path_sur, output_path=None, climaccf_lib_pat
     input_dir['path_pl'] = path_pl # input_path + 'MAR2019_pressure.nc'  # 'pressure_lev_june2018_res0.5.nc'
 
     # 2) Directory for input data provided at single pressure level such as top net thermal radiation on the TOA
+
     input_dir['path_sur'] = path_sur # input_path + 'MAR2019_surface_mod.nc'  # 'surface_june2018_res0.5.nc'
 
     # In addition to the directories for input data, directory of the CLIMaCCF needs to be specified within input_dir:
@@ -81,13 +79,15 @@ def compute_climate_impact(path_pl, path_sur, output_path=None, climaccf_lib_pat
     with open(climaccf_config_user_file, "r") as ymlfile:
         confg = yaml.safe_load(ymlfile)
 
-    confg['climate_indicator'] = climate_indicator
-    confg['TimHorizon'] = TimHorizon
-    confg['ac_type'] = ac_type
-    confg['merged'] = merged
+    # confg['climate_indicator'] = climate_indicator
+    # confg['TimHorizon'] = TimHorizon
+    # confg['ac_type'] = ac_type
+    # confg['merged'] = merged
 
     CI = ClimateImpact(input_dir, output_path, **confg)
     CI.calculate_accfs(**confg)
+
+    print("\nOutput saved as:", output_path)
 
 
 if __name__ == "__main__":

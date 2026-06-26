@@ -92,15 +92,15 @@ PMO: true
       # Options: true, false
 
 # If true, the total NOx aCCF is calculated (i.e. aCCF-NOx = aCCF-CH4 + aCCF-O3)
-NOx_aCCF: false
+NOx_aCCF: true
       # Options: true, false
 
 # If true, all individual aCCFs are converted to the same unit of K/kg(fuel) and saved in the output file.
-unit_K/kg(fuel): false
+unit_K/kg(fuel): true
       # Options: true, false
 
 # If true, merged non-CO2 aCCF is calculated
-merged: false
+merged: true
       # Options: true, false
 
 # If true, climate hotspots (regions that are very sensitive to aviation emissions) are calculated (for more details see Dietmueller et al. 2022)
