@@ -1,0 +1,6 @@
+env_impact_data_from_climaccf
+uv.lock
+pyproject.toml
+.python-version
+.idea
+.venv
