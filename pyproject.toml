@@ -5,9 +5,14 @@ description = "Add your description here"
 requires-python = ">=3.10"
 dependencies = [
     "climaccf",
+    "geopy>=2.4.1",
     "h5py>=3.16.0",
     "netcdf4>=1.7.3",
+    "openap>=2.4",
+    "pandas-stubs>=2.3.3.260113",
+    "read-all-ft",
 ]
 
 [tool.uv.sources]
 climaccf = { git = "https://github.com/dlr-pa/climaccf.git" }
+read-all-ft = { git = "https://github.com/UoW-ATM/read_all_ft.git" }

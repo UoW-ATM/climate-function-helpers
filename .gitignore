@@ -4,3 +4,4 @@ pyproject.toml
 .python-version
 .idea
 .venv
+test/*
