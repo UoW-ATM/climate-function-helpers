@@ -325,6 +325,8 @@ def compute_trajectories(allft_path=None, flight_ids=None, output_path=None, int
     output_path.resolve().parents[0].mkdir(parents=True, exist_ok=True)
     df_trajs.to_csv(output_path, index=False)
 
+    return df_trajs
+
 
 if __name__ == '__main__':
 
