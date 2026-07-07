@@ -13,7 +13,7 @@ def nearest_index(array, values):
     return np.abs(array[:, None] - values).argmin(axis=0)
 
 
-def load_climate_impact_file(file_path=None, col_name_hotspot='Climate_hotspots99'):
+def load_climate_impact_file(file_path=None, col_name_hotspot='hotspot'):
     ds = xr.open_dataset(file_path)
 
     # Preload variables to memory as numpy arrays (or xarray.DataArray)
@@ -130,7 +130,7 @@ def compute_all_flights_emissions(df_trajs, climate_file_path=None, col_id='tact
 
 if __name__=='__main__':
     traj_file_path = 'test/trajectories.csv'
-    climate_file_path = "test/env_impact_data_from_climaccf/env_processed.nc"
+    climate_file_path = "test/env_impact_data_from_climaccf/env_processed_hotspot.nc"
 
     df_trajs = pd.read_csv(traj_file_path)
 

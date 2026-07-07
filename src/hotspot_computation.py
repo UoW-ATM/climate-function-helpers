@@ -6,12 +6,11 @@ import xarray as xr
 import argparse
 
 
-def compute_hotspot(env_impact_file=None, threshold=1e-9, output_file=None,
+def compute_hotspots_from_climate_impact(env_impact_file=None, threshold=1e-9, output_file=None,
                     variable_name_for_threshold="aCCF_merged"):
     if env_impact_file is None:
         PROJECT_ROOT = Path(__file__).resolve().parents[1]
-        env_impact_file = PROJECT_ROOT / "env_impact_data_from_climaccf" / "env_processed.nc"
-        # env_impact_file = "hotspot.nc"
+        env_impact_file = PROJECT_ROOT / "test" / "env_impact_data_from_climaccf" / "env_processed.nc"
 
     print('Computing hotspot based on file', env_impact_file)
 
@@ -36,7 +35,7 @@ def compute_hotspot(env_impact_file=None, threshold=1e-9, output_file=None,
 
     if output_file is None:
         PROJECT_ROOT = Path(__file__).resolve().parents[1]
-        output_file = PROJECT_ROOT / "env_impact_data_from_climaccf" / "env_processed_hotspot.nc"
+        output_file = PROJECT_ROOT / 'test' / "env_impact_data_from_climaccf" / "env_processed_hotspot.nc"
         output_file.resolve().parents[0].mkdir(parents=True, exist_ok=True)
 
     # Save to a new NetCDF file
@@ -60,14 +59,17 @@ if __name__ == "__main__":
     parser.add_argument("-thr",
                         "--threshold",
                         type=float,
-                        help="Threshold value for comparison (supports scientific notation)")
+                        help="Threshold value for comparison (supports scientific notation)",
+                        default='1e-9')
 
     # Parse arguments
     args = parser.parse_args()
     input_file = args.input_netcdf
 
-    compute_hotspot(env_impact_file=args.input_netcdf,
-                    threshold=args.threshold,
+    threshold_float = float(args.threshold)
+
+    compute_hotspots_from_climate_impact(env_impact_file=args.input_netcdf,
+                    threshold=threshold_float,
                     output_file=args.output_netcdf
                     )
 
