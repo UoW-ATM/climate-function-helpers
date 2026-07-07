@@ -69,7 +69,7 @@ def compute_climate_impact(path_pl, path_sur, output_path=None, climaccf_lib_pat
     # Destination directory where all output will be written:
     if output_path is None:
         PROJECT_ROOT = Path(__file__).resolve().parents[1]
-        output_path = PROJECT_ROOT / "env_impact_data_from_climaccf" / "env_processed"
+        output_path = PROJECT_ROOT / 'test' / "env_impact_data_from_climaccf" / "env_processed"
         output_path.resolve().parents[0].mkdir(parents=True, exist_ok=True)
         output_path = str(output_path)
 

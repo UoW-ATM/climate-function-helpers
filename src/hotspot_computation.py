@@ -1,5 +1,5 @@
 # script for calculating hotspot grid cells, needs to have the following specified in the command line (path to those files):
-# command line: python Hotspot.py input_netcdf output_netcdf -thr
+# command line: python hotspot_computation.py input_netcdf output_netcdf -thre 1e-9
 
 from pathlib import Path
 import xarray as xr
