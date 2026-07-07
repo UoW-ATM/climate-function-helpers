@@ -2,7 +2,7 @@
 # this script first concatenates the all_ft+ files that are needed (depending on the period one wants to analyse
 # This can take a while - and that is with choosing only certain columns
 # Then the file that contains flight ids chosen for certain scenarios is taken - this identifies which trajectories we want to use
-# Those trajectories are then loaded, added interpolation points, pressure level, vertical rate, ground speed, time gap and fuel
+# Those trajectories are then loaded, added interpolation points, pressure level, vertical rate, ground speed, time elapsed_time and fuel
 # this is rather fast now - 80 seconds for 130 trajectories
 # Two csv files are created - one contains the metadata on trajectories (origin, destination, ac_type and tact_id),
 # and the other one contains all the trajectories, with the interpolation points added and calculated ground_speed and time elapsed between two trajectory points.
@@ -107,24 +107,24 @@ def compute_speed_vs_time(df):
     df = df.sort_values('Timestamp').reset_index(drop=True)
 
     # Time difference in seconds
-    df['gap'] = df['Timestamp'].diff().dt.total_seconds()
+    df['elapsed_time'] = df['Timestamp'].diff().dt.total_seconds()
 
     # Distance in km between each point and the previous
     # Compute speed in knots
     df['GS'] = [int((geodesic((df.loc[i - 1, 'Latitude'], df.loc[i - 1, 'Longitude']),
                               (df.loc[i, 'Latitude'], df.loc[i, 'Longitude'])).nm
-                     / df.loc[i, 'gap']) * 3600)
+                     / df.loc[i, 'elapsed_time']) * 3600)
 
                 if i > 0 else np.nan
                 for i in range(len(df))
                 ]
     # compute vertical speed
-    df['vertical_rate'] = [int((((df.loc[i, 'FL'] - df.loc[i - 1, 'FL']) * 100) / df.loc[i, 'gap']) * 60)
+    df['vertical_rate'] = [int((((df.loc[i, 'FL'] - df.loc[i - 1, 'FL']) * 100) / df.loc[i, 'elapsed_time']) * 60)
                            if i > 0 else np.nan
                            for i in range(len(df))]
 
     # Set first point to zero instead of NaN
-    df['gap'] = df['gap'].fillna(0)
+    df['elapsed_time'] = df['elapsed_time'].fillna(0)
     df['GS'] = df['GS'].fillna(0)
     df['vertical_rate'] = df['vertical_rate'].fillna(0)
 
@@ -266,9 +266,9 @@ def fuel_flow(ac_type, mass, df_traj):
             #print("----->", fuelflow.enroute(mass=65000, tas=400, alt=row.FL * 100, vs=row.vertical_rate+1000))
             #print("----->", (65000, 455, row.FL*100, row.vertical_rate))
             #print("----->", fuelflow.enroute(mass=65000, tas=455, alt=row.FL*100, vs=row.vertical_rate+1000))
-        fuel = ff * row.gap  # kg/sec
+        fuel = ff * row.elapsed_time  # kg/sec
         fuelflow_every_step.append(ff)
-        fuel_every_step.append(ff * row.gap)  # kg
+        fuel_every_step.append(ff * row.elapsed_time)  # kg
         mass_current -= fuel
 
     df_traj = df_traj.assign(fuel_flow=fuelflow_every_step, fuel=fuel_every_step)
@@ -276,23 +276,8 @@ def fuel_flow(ac_type, mass, df_traj):
 
 
 def compute_trajectories(allft_path=None, flight_ids=None, output_path=None, interpolation_distance_km=15):
-    ### Have a path to all_ft+ files here
-    # allft_path='./all_ft/' #path to one or multiple ft+files
-    ### a path to the file with the flight ids, which are actually tact_ids that need to be extracted
-    # id_path = './Scenario_big_real10_pa/flight_ids_big_real10_pa.csv'
-    #
-    # ids=pd.read_csv(id_path)
-
-    # ids_extract=list(ids['FlightID'])
-
-    ### distance for interpolation
-
-    # start_time = time.time()  # Start timing
-    ## getting all the all_ft+ files into one dataframe and deleting duplicates
-
     files = glob.glob(os.path.join(allft_path, "*.ALL_FT+"))
     dfs = []
-    # id_list = []
 
     flight_ids = np.array(flight_ids).astype(int)
 
@@ -300,8 +285,6 @@ def compute_trajectories(allft_path=None, flight_ids=None, output_path=None, int
         print('Reading ALLFT+ file...', f)
         df_all_ft = read_all_ft_formatted(f, columns=['origin', 'destination', 'ac_id', 'operator', 'ac_type', 'tact_id', 'ftfmAllFtPointProfile',
                                'ftfmConsumedFuel', 'ftfmRouteCharges', 'ifps_id'])
-        # df_all_ft = df_all_ft[['origin', 'destination', 'ac_id', 'operator', 'ac_type', 'tact_id', 'ftfmAllFtPointProfile',
-        #                        'ftfmConsumedFuel', 'ftfmRouteCharges']] #keep only few columns needed to reduce file size and time
         # print('A few tact IDs:\n', df_all_ft.iloc[:10]['tact_id'])
         df_all_ft = df_all_ft[df_all_ft.tact_id.isin(flight_ids)]
         dfs.append(df_all_ft)
@@ -312,33 +295,6 @@ def compute_trajectories(allft_path=None, flight_ids=None, output_path=None, int
     if len(dfs)==0:
         raise Exception('No trajectories found in ALLFT+ file with these ids')
 
-    # end_time = time.time()  # End timing
-    # print(f"All_ft+ read Execution time: {end_time - start_time:.6f} seconds")
-    #
-    # #Extract certain trajectories
-    # start_time = time.time()  # Start timing
-
-    # Filter from the ALl_FT the rows of flights which are within ids_extract
-    # dfs = dfs[dfs.tact_id.isin(flight_ids)]
-
-    # Add aircraft and trajectory dataframe
-    # print(dfs)
-    # row = dfs.iloc[0]
-    # print('COIENOINE\n', row['ifps_id'], row.to_frame().T)
-    # print()
-    # coin = extract_trajectory(row['ifps_id'],
-    #                                                                                         row.to_frame().T,
-    #                                                                                         traj_type='ftfm')
-    # print(coin)
-    # print()
-    # print(len(coin))
-
-
-    # dfs[['aircraft', 'df_trajectory']] = dfs.apply(lambda row: pd.Series(extract_trajectory(row['ifps_id'],
-    #                                                                                         row.to_frame().T,
-    #                                                                                         traj_type='ftfm')
-    #                                                                      ),
-    #                                                axis=1)
     df_trajs = []
 
     for i, row in dfs.iterrows():
@@ -347,23 +303,11 @@ def compute_trajectories(allft_path=None, flight_ids=None, output_path=None, int
                                      traj_type='ftfm'
                                      )
         mass = get_mtow(row['ac_type'])
-        # print('\n\ndf_traj 1:\n', df_traj)
         df_traj = interpolate_points_with_timestamps(df_traj, interpolation_distance_km)
-        # print('\n\ndf_traj 2:\n', df_traj)
         df_traj = compute_speed_vs_time(df_traj)
-        # print('\n\ndf_traj 3:\n', df_traj)
-
-        # df_traj = df_traj.apply(lambda x: interpolate_points_with_timestamps(x, interpolation_distance_km))
-        # df_traj = df_traj.apply(lambda x: compute_speed_vs_time(x))
-        # df_traj = compute_speed_vs_time(df_traj)
-
-        # print('MASS:', mass)
 
         df_traj = fuel_flow(row['ac_type'], mass, df_traj)
 
-        # print('\n\ndf_traj 4:\n', df_traj)
-
-        # df_traj.apply(lambda row: fuel_flow(row['ac_id'], df_traj['mass'].iloc[0], df_traj), axis=1)
         df_traj['ifps_id'] = row['ifps_id']
         df_traj['tact_id'] = row['tact_id']
         df_traj['origin'] = row['origin']
@@ -375,50 +319,11 @@ def compute_trajectories(allft_path=None, flight_ids=None, output_path=None, int
     df_trajs = pd.concat(df_trajs, ignore_index=True)
     df_trajs['pressure_Level'] = df_trajs['FL'].apply(calculate_pressure).astype(int)
 
-    # dfs['df_trajectory']= dfs.apply(lambda row: pd.Series(extract_trajectory(row['ifps_id'],
-    #                                                                                         row.to_frame().T,
-    #                                                                                         traj_type='ftfm')
-    #                                                                      ),
-    #                                                axis=1)
-    # Add mass
-    # dfs['mass'] = dfs['aircraft'].apply(lambda x: get_mtow(x))
-
-    # Interpolate points in trajectory
-    # dfs['df_trajectory'] = dfs['df_trajectory'].apply(lambda x: interpolate_points_with_timestamps(x, interpolation_distance_km))
-    #
-    # # Compute speed and times for trajectory points
-    # dfs['df_trajectory'] = dfs['df_trajectory'].apply(lambda x: compute_speed_vs_time(x))
-
-    # Computes fuel flow
-    # dfs['df_trajectory'] = dfs.apply(lambda row: fuel_flow(row['aircraft'], row['mass'], row['df_trajectory']), axis=1)
-
-    # Add tact_id to trajectory dataframe
-    # def inject_tact_id(row):
-    #     row['df_trajectory']['tact_id'] = row['tact_id']
-    #     return row
-
-    # dfs = dfs.apply(inject_tact_id, axis=1)
-
-    # # Extract trajectory dataframes for all rows
-    # df_trajectory = pd.concat(list(dfs['df_trajectory']))
-
-    # # Add pressure level
-    # df_trajectory['pressure_Level'] = df_trajectory['FL'].apply(calculate_pressure).astype(int)
-
-    #  Get metadata and save it
-    # metadata_df = dfs[['origin', 'destination', 'ac_type', 'tact_id']]
-    # metadata_df.to_csv('metadata.csv', index=False)
-
     # Save trajectory dataframe
     print('Trajectories saved in', output_path)
     output_path = Path(output_path)
     output_path.resolve().parents[0].mkdir(parents=True, exist_ok=True)
     df_trajs.to_csv(output_path, index=False)
-
-    # # dfs.to_csv('./dfs.csv')
-    # end_time = time.time()  # End timing
-    #
-    # print(f"Execution time: {end_time - start_time:.6f} seconds"
 
 
 if __name__ == '__main__':
