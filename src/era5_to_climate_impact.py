@@ -42,7 +42,8 @@ def get_virtualenv_name() -> str | None:
     return None
 
 
-def compute_climate_impact(path_pl, path_sur, output_path=None, climaccf_lib_path=None,  climaccf_config_user_file=None):
+def compute_climate_impact(path_pl, path_sur, output_path=None, climaccf_lib_path=None,  climaccf_config_user_file=None,
+                           config_dict_climaccf={}):
     """climate_indicator='ATR',
                            TimHorizon=20, ac_type='wide-body', merged=True,"""
 
@@ -78,6 +79,9 @@ def compute_climate_impact(path_pl, path_sur, output_path=None, climaccf_lib_pat
 
     with open(climaccf_config_user_file, "r") as ymlfile:
         confg = yaml.safe_load(ymlfile)
+
+    for k, v in config_dict_climaccf.items():
+        confg[k] = v
 
     # confg['climate_indicator'] = climate_indicator
     # confg['TimHorizon'] = TimHorizon
