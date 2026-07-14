@@ -159,3 +159,7 @@ compute_all_emissions_from_all_ft(era5_input_path=era5_input_path,
                                   flight_ids=['697364'],
                                   )
 ```
+
+# Licence
+
+This repository is released under the GPL v3 licence. The licence can be found in LICENCE.TXT
